@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Launcher Browser</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {
+      margin: 0;
+      background: #0f0a18;
+      font-family: system-ui;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+    input, button {
+      padding: 12px;
+      margin: 8px;
+      border-radius: 10px;
+      border: none;
+      font-size: 1rem;
+    }
+    input {
+      flex: 1;
+    }
+    button {
+      background: #ff9ce6;
+      cursor: pointer;
+    }
+    iframe {
+      flex: 1;
+      border: none;
+      background: black;
+    }
+  </style>
+</head>
+<body>
+
+<div style="display:flex">
+  <input id="url" placeholder="Enter URL">
+  <button onclick="go()">Go</button>
+</div>
+
+<iframe id="frame"></iframe>
+
+<script>
+function go() {
+  let u = url.value.trim();
+  if (!u) return;
+  if (!u.startsWith("http")) u = "https://" + u;
+
+  // try iframe first
+  frame.src = u;
+
+  // fallback: open new tab if blocked
+  setTimeout(() => {
+    try {
+      frame.contentWindow.location.href;
+    } catch {
+      window.open(u, "_blank");
+    }
+  }, 800);
+}
+</script>
+
+</body>
+</html>
