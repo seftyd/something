@@ -9,13 +9,10 @@
       margin: 0;
       background: #0f0a18;
       font-family: system-ui;
-
-      /* Center the panel */
+      height: 100vh;
       display: flex;
       justify-content: center;
       align-items: center;
-
-      height: 100vh;
     }
 
     #panel {
@@ -27,6 +24,13 @@
       display: flex;
       flex-direction: column;
       overflow: hidden;
+
+      position: absolute; /* required for dragging */
+      cursor: grab;
+    }
+
+    #panel:active {
+      cursor: grabbing;
     }
 
     input, button {
@@ -87,6 +91,31 @@ function go() {
     }
   }, 800);
 }
+
+/* ---------------------------
+   FULL PANEL DRAGGING LOGIC
+----------------------------*/
+const panel = document.getElementById("panel");
+
+let isDragging = false;
+let offsetX = 0;
+let offsetY = 0;
+
+panel.addEventListener("mousedown", (e) => {
+  isDragging = true;
+  offsetX = e.clientX - panel.offsetLeft;
+  offsetY = e.clientY - panel.offsetTop;
+});
+
+document.addEventListener("mousemove", (e) => {
+  if (!isDragging) return;
+  panel.style.left = (e.clientX - offsetX) + "px";
+  panel.style.top = (e.clientY - offsetY) + "px";
+});
+
+document.addEventListener("mouseup", () => {
+  isDragging = false;
+});
 </script>
 
 </body>
