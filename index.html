@@ -9,10 +9,26 @@
       margin: 0;
       background: #0f0a18;
       font-family: system-ui;
+
+      /* Center the panel */
       display: flex;
-      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+
       height: 100vh;
     }
+
+    #panel {
+      width: 420px;
+      height: 600px;
+      background: #1a1124;
+      border-radius: 16px;
+      box-shadow: 0 0 25px rgba(255,156,230,0.25);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
     input, button {
       padding: 12px;
       margin: 8px;
@@ -20,28 +36,40 @@
       border: none;
       font-size: 1rem;
     }
+
     input {
       flex: 1;
     }
+
     button {
       background: #ff9ce6;
       cursor: pointer;
     }
+
     iframe {
       flex: 1;
       border: none;
       background: black;
+      margin: 0 8px 8px 8px;
+      border-radius: 10px;
+    }
+
+    .row {
+      display: flex;
+      padding: 0 8px;
     }
   </style>
 </head>
 <body>
 
-<div style="display:flex">
-  <input id="url" placeholder="Enter URL">
-  <button onclick="go()">Go</button>
-</div>
+<div id="panel">
+  <div class="row">
+    <input id="url" placeholder="Enter URL">
+    <button onclick="go()">Go</button>
+  </div>
 
-<iframe id="frame"></iframe>
+  <iframe id="frame"></iframe>
+</div>
 
 <script>
 function go() {
@@ -49,10 +77,8 @@ function go() {
   if (!u) return;
   if (!u.startsWith("http")) u = "https://" + u;
 
-  // try iframe first
   frame.src = u;
 
-  // fallback: open new tab if blocked
   setTimeout(() => {
     try {
       frame.contentWindow.location.href;
