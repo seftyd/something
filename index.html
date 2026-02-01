@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Resilient Launcher</title>
+  <title>Launcher Browser</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     body {
@@ -25,12 +25,33 @@
       display: flex;
       flex-direction: column;
       overflow: hidden;
+
       position: absolute;
       cursor: grab;
     }
 
     #panel:active {
       cursor: grabbing;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 12px;
+      background: #25172f;
+      color: white;
+      font-size: 1rem;
+      user-select: none;
+    }
+
+    .btn {
+      background: #ff9ce6;
+      border: none;
+      padding: 6px 10px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.9rem;
     }
 
     input, button {
@@ -62,71 +83,59 @@
       display: flex;
       padding: 0 8px;
     }
-
-    #fallback {
-      display: none;
-      color: white;
-      text-align: center;
-      padding: 20px;
-      font-size: 1rem;
-    }
-
-    #fallback button {
-      margin-top: 10px;
-      background: #ff9ce6;
-    }
   </style>
 </head>
 <body>
 
 <div id="panel">
+  <div class="topbar">
+    <span>Launcher</span>
+    <button class="btn" id="closeBtn">Close</button>
+  </div>
+
   <div class="row">
     <input id="url" placeholder="Enter URL">
     <button onclick="go()">Go</button>
   </div>
 
   <iframe id="frame"></iframe>
-
-  <div id="fallback">
-    This content cannot be displayed here.<br>
-    It may be restricted or blocked.<br>
-    <button onclick="openInNewTab()">Open in new tab</button>
-  </div>
 </div>
 
 <script>
 function go() {
-  const uInput = url.value.trim();
-  if (!uInput) return;
+  let u = url.value.trim();
+  if (!u) return;
+  if (!u.startsWith("http")) u = "https://" + u;
 
-  let u = uInput.startsWith("http") ? uInput : "https://" + uInput;
+  frame.src = u;
 
-  const iframe = document.getElementById("frame");
-  const fallback = document.getElementById("fallback");
-
-  iframe.style.display = "block";
-  fallback.style.display = "none";
-  iframe.src = u;
-
-  // Graceful detection of blocked content
   setTimeout(() => {
     try {
-      // Accessing this will throw if blocked by CSP or X-Frame-Options
-      void iframe.contentWindow.location.href;
-    } catch (err) {
-      iframe.style.display = "none";
-      fallback.style.display = "block";
+      frame.contentWindow.location.href;
+    } catch {
+      window.open(u, "_blank");
     }
   }, 800);
 }
 
-function openInNewTab() {
-  const uInput = url.value.trim();
-  if (!uInput) return;
+/* ---------------------------
+   CLOSE BUTTON
+----------------------------*/
+document.getElementById("closeBtn").onclick = () => {
+  panel.remove();
+};
 
-  let u = uInput.startsWith("http") ? uInput : "https://" + uInput;
-  window.open(u, "_blank");
-}
+/* ---------------------------
+   HIDE / SHOW TOGGLE (Backslash)
+----------------------------*/
+let hidden = false;
+
+document.addEventListener("keydown", (e) => {
+  if (e.key === "\\") {
+    hidden = !hidden;
+    panel.style.display = hidden ? "none" : "flex";
+  }
+});
 
 /* ---------------------------
    DRAGGING LOGIC
