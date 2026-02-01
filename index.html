@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Launcher Browser</title>
+  <title>Resilient Launcher</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     body {
@@ -13,6 +13,7 @@
       display: flex;
       justify-content: center;
       align-items: center;
+      overflow: hidden;
     }
 
     #panel {
@@ -24,8 +25,7 @@
       display: flex;
       flex-direction: column;
       overflow: hidden;
-
-      position: absolute; /* required for dragging */
+      position: absolute;
       cursor: grab;
     }
 
@@ -62,6 +62,19 @@
       display: flex;
       padding: 0 8px;
     }
+
+    #fallback {
+      display: none;
+      color: white;
+      text-align: center;
+      padding: 20px;
+      font-size: 1rem;
+    }
+
+    #fallback button {
+      margin-top: 10px;
+      background: #ff9ce6;
+    }
   </style>
 </head>
 <body>
@@ -73,27 +86,50 @@
   </div>
 
   <iframe id="frame"></iframe>
+
+  <div id="fallback">
+    This content cannot be displayed here.<br>
+    It may be restricted or blocked.<br>
+    <button onclick="openInNewTab()">Open in new tab</button>
+  </div>
 </div>
 
 <script>
 function go() {
-  let u = url.value.trim();
-  if (!u) return;
-  if (!u.startsWith("http")) u = "https://" + u;
+  const uInput = url.value.trim();
+  if (!uInput) return;
 
-  frame.src = u;
+  let u = uInput.startsWith("http") ? uInput : "https://" + uInput;
 
+  const iframe = document.getElementById("frame");
+  const fallback = document.getElementById("fallback");
+
+  iframe.style.display = "block";
+  fallback.style.display = "none";
+  iframe.src = u;
+
+  // Graceful detection of blocked content
   setTimeout(() => {
     try {
-      frame.contentWindow.location.href;
-    } catch {
-      window.open(u, "_blank");
+      // Accessing this will throw if blocked by CSP or X-Frame-Options
+      void iframe.contentWindow.location.href;
+    } catch (err) {
+      iframe.style.display = "none";
+      fallback.style.display = "block";
     }
   }, 800);
 }
 
+function openInNewTab() {
+  const uInput = url.value.trim();
+  if (!uInput) return;
+
+  let u = uInput.startsWith("http") ? uInput : "https://" + uInput;
+  window.open(u, "_blank");
+}
+
 /* ---------------------------
-   FULL PANEL DRAGGING LOGIC
+   DRAGGING LOGIC
 ----------------------------*/
 const panel = document.getElementById("panel");
 
