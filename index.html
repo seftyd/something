@@ -1,167 +1,872 @@
+
 <!DOCTYPE html>
-<html>
+<html lang="en">
+
+
+
+
 <head>
-  <meta charset="UTF-8">
-  <title>Launcher Browser</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <style>
-    body {
-      margin: 0;
-      background: #0f0a18;
-      font-family: system-ui;
-      height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      overflow: hidden;
-    }
+<meta charset="UTF-8">
+<title>Car Axle - Full Library & some Proxies</title>
 
-    #panel {
-      width: 420px;
-      height: 600px;
-      background: #1a1124;
-      border-radius: 16px;
-      box-shadow: 0 0 25px rgba(255,156,230,0.25);
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
 
-      position: absolute;
-      cursor: grab;
-    }
 
-    #panel:active {
-      cursor: grabbing;
-    }
 
-    .topbar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 8px 12px;
-      background: #25172f;
-      color: white;
-      font-size: 1rem;
-      user-select: none;
-    }
-
-    .btn {
-      background: #ff9ce6;
-      border: none;
-      padding: 6px 10px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 0.9rem;
-    }
-
-    input, button {
-      padding: 12px;
-      margin: 8px;
-      border-radius: 10px;
-      border: none;
-      font-size: 1rem;
-    }
-
-    input {
-      flex: 1;
-    }
-
-    button {
-      background: #ff9ce6;
-      cursor: pointer;
-    }
-
-    iframe {
-      flex: 1;
-      border: none;
-      background: black;
-      margin: 0 8px 8px 8px;
-      border-radius: 10px;
-    }
-
-    .row {
-      display: flex;
-      padding: 0 8px;
-    }
-  </style>
-</head>
-<body>
-
-<div id="panel">
-  <div class="topbar">
-    <span>Launcher</span>
-    <button class="btn" id="closeBtn">Close</button>
-  </div>
-
-  <div class="row">
-    <input id="url" placeholder="Enter URL">
-    <button onclick="go()">Go</button>
-  </div>
-
-  <iframe id="frame"></iframe>
-</div>
-
-<script>
-function go() {
-  let u = url.value.trim();
-  if (!u) return;
-  if (!u.startsWith("http")) u = "https://" + u;
-
-  frame.src = u;
-
-  setTimeout(() => {
-    try {
-      frame.contentWindow.location.href;
-    } catch {
-      window.open(u, "_blank");
-    }
-  }, 800);
+<style>
+body{
+font-family:'Segoe UI',sans-serif;
+background:#1a1a1a;
+color:#fff;
+margin:0;
+display:flex;
+height:100vh;
+overflow:hidden;
 }
 
-/* ---------------------------
-   CLOSE BUTTON
-----------------------------*/
-document.getElementById("closeBtn").onclick = () => {
-  panel.remove();
-};
 
-/* ---------------------------
-   HIDE / SHOW TOGGLE (Backslash)
-----------------------------*/
-let hidden = false;
 
-document.addEventListener("keydown", (e) => {
-  if (e.key === "\\") {
-    hidden = !hidden;
-    panel.style.display = hidden ? "none" : "flex";
+
+#sidebar{
+width:350px;
+background:#222;
+border-right:2px solid #00d1ff;
+padding:15px;
+display:flex;
+flex-direction:column;
+box-shadow:5px 0 15px rgba(0,0,0,.5);
+opacity:0;
+transform:translateX(-10px);
+transition:opacity .4s ease,transform .4s ease;
+}
+
+
+
+
+#viewer{
+flex-grow:1;
+background:#000;
+display:flex;
+flex-direction:column;
+opacity:0;
+transform:translateX(10px);
+transition:opacity .4s ease,transform .4s ease;
+}
+
+
+
+
+h2{
+color:#00d1ff;
+font-size:1em;
+margin:15px 0 5px 0;
+text-transform:uppercase;
+}
+
+
+
+
+select,input{
+width:100%;
+padding:12px;
+background:#333;
+border:1px solid #444;
+color:#fff;
+border-radius:4px;
+outline:none;
+box-sizing:border-box;
+}
+
+
+
+
+#game-list{
+flex-grow:1;
+margin-top:15px;
+overflow-y:auto;
+padding-right:5px;
+}
+
+
+
+
+.game-btn{
+background:#2a2a2a;
+padding:10px;
+margin:4px 0;
+border-radius:4px;
+cursor:pointer;
+transition:.2s;
+font-size:.9em;
+border-left:3px solid transparent;
+}
+
+
+
+
+.game-btn:hover{
+background:#3a3a3a;
+border-left-color:#00d1ff;
+transform:translateX(2px);
+}
+
+
+
+
+.active-game{
+background:#00d1ff!important;
+color:#000;
+font-weight:bold;
+}
+
+
+
+
+#status-bar{
+background:#111;
+padding:10px 20px;
+font-size:.8em;
+border-bottom:1px solid #333;
+color:#888;
+display:flex;
+justify-content:space-between;
+align-items:center;
+}
+
+
+
+
+iframe{
+flex-grow:1;
+border:none;
+width:100%;
+height:100%;
+background:#000;
+opacity:0;
+transition:opacity .4s ease;
+}
+
+
+
+
+.hl{
+color:#00d1ff;
+font-weight:bold;
+}
+
+
+
+
+#loader-overlay{
+position:absolute;
+inset:0;
+display:flex;
+align-items:center;
+justify-content:center;
+background:rgba(0,0,0,.6);
+z-index:5;
+opacity:0;
+pointer-events:none;
+transition:opacity .3s ease;
+}
+
+
+
+
+#loader-overlay.active{
+opacity:1;
+pointer-events:auto;
+}
+
+
+
+
+.loader-spinner{
+width:48px;
+height:48px;
+border:4px solid rgba(0,209,255,.2);
+border-top-color:#00d1ff;
+border-radius:50%;
+animation:spin .8s linear infinite;
+}
+
+
+
+
+@keyframes spin{
+to{transform:rotate(360deg)}
+}
+
+
+
+
+#viewer-wrapper{
+position:relative;
+flex-grow:1;
+display:flex;
+flex-direction:column;
+}
+
+
+
+
+#home-screen{
+position:absolute;
+inset:0;
+background:#111;
+display:flex;
+flex-direction:column;
+align-items:center;
+justify-content:center;
+text-align:center;
+z-index:10;
+transition:opacity .4s ease;
+}
+
+
+
+
+#home-screen.hidden{
+opacity:0;
+pointer-events:none;
+}
+
+
+
+
+.home-btn{
+background:#00d1ff;
+color:#000;
+padding:15px 25px;
+margin:10px;
+border-radius:6px;
+font-size:1.1em;
+cursor:pointer;
+}
+
+
+
+
+.home-btn:hover{
+transform:scale(1.05);
+background:#00e0ff;
+}
+</style>
+</head>
+
+
+
+
+<body>
+
+
+
+
+<div id="sidebar">
+  <h2>Proxy (games.com focus)</h2>
+  <select id="proxy-selector" onchange="switchProxy()">
+    <option value="aHR0cHM6Ly9jYXItYXhrZS5vbnJlbmRlci5jb20v">(2)</option>
+    <option value="aHR0cHM6Ly9keGl0YzI4dHkyOXZiYzFvendmeWRjMWxidzlxYXEub25yZW5kZXIuY29tLwo=">(4)</option>
+    <option value="aHR0cHM6Ly9iaWdpZGVhc21hdGh3ZWJzaXRlLm9ucmVuZGVyLmNvbS8K">(5)</option>
+    <option value="aHR0cHM6Ly9jYXJheGxlY2xpZW50LmZ1bi8=">Default Base</option>
+    <option value="aHR0cHM6Ly9tb3J0Z2FnZWNhbGN1bGF0b3Iub3JnLw==">(MortgageCalculator)</option>
+  </select>
+
+
+
+
+  <h2>Search Library (<span id="count">0</span>)</h2>
+  <input type="text" id="search" placeholder="Type game name..." onkeyup="renderGames()">
+  <div id="game-list"></div>
+</div>
+
+
+
+
+<div id="viewer">
+  <div id="status-bar">
+    <div>
+      Host: <span id="current-url" class="hl">---</span> |
+      Game: <span id="active-title" class="hl">None</span>
+    </div>
+
+
+
+
+    <button onclick="goHome()" style="background:#00d1ff;color:#000;border:none;padding:8px 14px;border-radius:4px;cursor:pointer;margin-right:10px;">Home</button>
+    <button onclick="randomGame()" style="background:#00d1ff;color:#000;border:none;padding:8px 14px;border-radius:4px;cursor:pointer;">Random Game</button>
+  </div>
+
+
+
+
+  <div id="viewer-wrapper">
+
+
+
+
+    <div id="loader-overlay">
+      <div class="loader-spinner"></div>
+    </div>
+
+
+
+
+    <div id="home-screen">
+      <h1 style="color:#00d1ff;font-size:2.5em;margin-bottom:10px;">Car Axle</h1>
+      <p style="color:#bbb;font-size:1.2em;margin-bottom:25px;">Full Library + Proxies</p>
+
+
+
+
+      <div class="home-btn" onclick="openLibrary()">Open Game Library</div>
+      <div class="home-btn" onclick="randomGame()">Play Random Game</div>
+      <div class="home-btn" onclick="selectNotebook()">Notebook Portal</div>
+      <div class="home-btn" onclick="selectFNAE()">Five Night's at BIG E</div>
+    </div>
+
+
+
+
+    <iframe id="game-frame" src="about:blank"></iframe>
+
+
+
+
+  </div>
+</div>
+
+
+
+
+<!-- Hidden Unity launcher template for Five Night's at BIG E -->
+<div id="fnae-launcher" style="display:none;">
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <base href="https://cdn.jsdelivr.net/gh/web-ports/fnae@c9c8b513a27155bf37c4ab3dee74e99b12b895ba/">
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>Unity Web Player | Five Night's at BIG E</title>
+    <link rel="shortcut icon" href="TemplateData/favicon.ico">
+    <link rel="stylesheet" href="TemplateData/style.css">
+  </head>
+  <body style="background:black; margin:0; overflow:hidden;">
+    <div id="loading-text"
+      style="color: white; font-size: 32px; font-family: cursive; text-align: center; margin-top: 20px;">
+      LOADING...
+    </div>
+    <div id="unity-container" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;">
+      <canvas id="unity-canvas" width="960" height="600" tabindex="-1"></canvas>
+      <div id="unity-loading-bar">
+        <div id="unity-logo"></div>
+        <div id="unity-progress-bar-empty">
+          <div id="unity-progress-bar-full"></div>
+        </div>
+      </div>
+    </div>
+    <script>
+      var loadingText = document.querySelector("#loading-text");
+      let totalBytes = 0;
+      let loadedBytes = 0;
+
+
+
+
+      async function fetchWithProgress(url) {
+        const response = await fetch(url);
+        const reader = response.body.getReader();
+        let chunks = [];
+        let received = 0;
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          received += value.length;
+          loadedBytes += value.length;
+          chunks.push(value);
+          let mbDone = (loadedBytes / (1024 * 1024)).toFixed(2);
+          let mbTotal = '155.84';
+          if (loadingText) {
+            loadingText.textContent = `LOADING... ${mbDone} MB / ${mbTotal} MB`;
+          }
+        }
+        let fullBuffer = new Uint8Array(received);
+        let offset = 0;
+        for (let chunk of chunks) {
+          fullBuffer.set(chunk, offset);
+          offset += chunk.length;
+        }
+        return fullBuffer.buffer;
+      }
+
+
+
+
+      async function mergeFiles(fileParts, cacheKey) {
+        const buffers = await Promise.all(
+          fileParts.map(part => fetchWithProgress(part))
+        );
+        const mergedBlob = new Blob(buffers);
+        return URL.createObjectURL(mergedBlob);
+      }
+
+
+
+
+      function getParts(file, start, end) {
+        let parts = [];
+        for (let i = start; i <= end; i++) {
+          parts.push(file + ".part" + i);
+        }
+        return parts;
+      }
+
+
+
+
+      (async () => {
+        const [dataUrl, wasmUrl, webm] = await Promise.all([
+          mergeFiles(getParts("Build/fnae.data", 1, 3), "fnae.data"),
+          mergeFiles(getParts("Build/fnae.wasm", 1, 3), "fnae.wasm"),
+          mergeFiles(getParts("StreamingAssets/202512191935.webm", 1, 3), "202512191935.webm"),
+        ]);
+
+
+
+
+        window.randomwebm = webm;
+        const realSrc = Object.getOwnPropertyDescriptor(
+          HTMLMediaElement.prototype,
+          "src"
+        );
+
+
+
+
+        Object.defineProperty(HTMLMediaElement.prototype, "src", {
+          set(value) {
+            if (typeof value === "string" && (value.includes("202512191935.mp4") || value.includes("202512191935.webm"))) {
+              value = window.randomwebm;
+            }
+            return realSrc.set.call(this, value);
+          },
+          get() {
+            return realSrc.get.call(this);
+          }
+        });
+
+
+
+
+        var container = document.querySelector("#unity-container");
+        var canvas = document.querySelector("#unity-canvas");
+        var loadingBar = document.querySelector("#unity-loading-bar");
+        var progressBarFull = document.querySelector("#unity-progress-bar-full");
+
+
+
+
+        function unityShowBanner(msg, type) {}
+
+
+
+
+        var buildUrl = "Build";
+        var loaderUrl = buildUrl + "/fnae.loader.js";
+        var config = {
+          arguments: [],
+          dataUrl: dataUrl,
+          frameworkUrl: buildUrl + "/fnae.framework.js",
+          codeUrl: wasmUrl,
+          streamingAssetsUrl: "StreamingAssets",
+          companyName: "DefaultCompany",
+          productName: "fnae",
+          productVersion: "1.0",
+          showBanner: unityShowBanner,
+        };
+
+
+
+
+        if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+          var meta = document.createElement('meta');
+          meta.name = 'viewport';
+          meta.content = 'width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes';
+          document.getElementsByTagName('head')[0].appendChild(meta);
+        }
+
+
+
+
+        loadingBar.style.display = "block";
+
+
+
+
+        var script = document.createElement("script");
+        script.src = loaderUrl;
+        script.onload = () => {
+          createUnityInstance(canvas, config, (progress) => {
+            progressBarFull.style.width = 100 * progress + "%";
+          }).then((unityInstance) => {
+            loadingBar.style.display = "none";
+            if (loadingText) loadingText.remove();
+          }).catch((message) => {
+            console.error(message);
+          });
+        };
+        document.body.appendChild(script);
+      })();
+    </script>
+  </body>
+</html>
+</div>
+
+
+
+
+<script>
+let currentBase = "";
+let selectedGameUrl = "";
+
+
+
+
+const games = [
+  {name:"ace", url:"__ace__"},
+  {name:"1 on 1 Soccer", url:"1on1soccer/index.html"},
+  {name:"1v1.lol", url:"1v1lol/index.html"},
+  {name:"2048", url:"2048/index.html"},
+  {name:"60s Burger Run", url:"60sburgerrun/index.html"},
+  {name:"Notebook Portal", url:"__notebook__"},
+  {name:"arctic", url:"__arctic__"},
+  {name:"Five Night's at BIG E", url:"__fnae__"},
+  {name:"A Dance of Fire & Ice", url:"adofai/index.html"},
+  {name:"Achievement Unlocked", url:"achieveunlocked/index.html"},
+  {name:"Adventure Capitalist", url:"adventure-capitalist/index.html"},
+  {name:"Among Us", url:"amongus/index.html"},
+  {name:"Bad Ice Cream", url:"badicecream/index.html"},
+  {name:"Bad Ice Cream 2", url:"badicecream2/index.html"},
+  {name:"Bad Ice Cream 3", url:"badicecream3/index.html"},
+  {name:"Bad Piggies", url:"badpiggies/index.html"},
+  {name:"Basket Bros", url:"basketbros/index.html"},
+  {name:"Basketball Stars", url:"basketball-stars/index.html"},
+  {name:"Bitlife", url:"bitlife/index.html"},
+  {name:"Bloons TD 2", url:"btd2/index.html"},
+  {name:"Bloons TD 3", url:"btd3/index.html"},
+  {name:"Bloons TD 5", url:"btd5/index.html"},
+  {name:"Bloons TD 6", url:"btd6/index.html"},
+  {name:"Burrito Bison", url:"burritobison/index.html"},
+  {name:"Celeste", url:"celeste/index.html"},
+  {name:"Chess", url:"chess/index.html"},
+  {name:"Cookie Clicker", url:"cookieclicker/index.html"},
+  {name:"Crossy Road", url:"crossyroad/index.html"},
+  {name:"Cut The Rope", url:"cuttherope/index.html"},
+  {name:"Doge Miner", url:"dogeminer/index.html"},
+{name:"Drift Hunters", url:"drifthunters/index.html"},
+{name:"Drive Mad", url:"drivemad/index.html"},
+{name:"Duck Life 4", url:"ducklife4/index.html"},
+{name:"FNAF", url:"fnaf/index.html"},
+{name:"FNAF 2", url:"fnaf2/index.html"},
+{name:"FNAF 3", url:"fnaf3/index.html"},
+{name:"FNAF 4", url:"fnaf4/index.html"},
+{name:"Friday Night Funkin", url:"fridaynightfunkin/index.html"},
+{name:"Geometry Dash", url:"geometrydash/index.html"},
+{name:"Happy Wheels", url:"happywheels/index.html"},
+{name:"Idle Breakout", url:"idlebreakout/index.html"},
+{name:"Jetpack Joyride", url:"jetpackjoyride/index.html"},
+{name:"Learn to Fly 2", url:"learntofly2/index.html"},
+{name:"Moto X3M", url:"motox3m/index.html"},
+{name:"Papas Burgeria", url:"papasburgeria/index.html"},
+{name:"Papas Freezeria", url:"papasfreezeria/index.html"},
+{name:"Pokemon Emerald", url:"roms/index.html?game=pokemon-emerald&type=gba"},
+{name:"Pokemon Fire Red", url:"roms/index.html?game=pokemon-fire-red&type=gba"},
+{name:"Retro Bowl", url:"retrobowl/index.html"},
+{name:"Riddle School 5", url:"riddleschool5/index.html"},
+{name:"Slope", url:"slope/index.html"},
+{name:"Slope 2", url:"slope2/index.html"},
+{name:"Subway Surfers", url:"subway-surfers-ny/index.html"},
+{name:"Super Mario 64", url:"supermario64/index.html"},
+{name:"Temple Run 2", url:"templerun2/index.html"},
+{name:"Vex 7", url:"vex7/index.html"},
+{name:"World's Hardest Game", url:"worldshardestgame/index.html"},
+{name:"Basket Random", url:"basketrandom/index.html"},
+{name:"Fireboy and Watergirl 2", url:"fireboywatergirl2/index.html"},
+{name:"Fireboy and Watergirl 3", url:"fireboywatergirl3/index.html"},
+{name:"OvO", url:"ovo/index.html"},
+{name:"Run 3", url:"run3/index.html"},
+{name:"Soccer Random", url:"soccerrandom/index.html"},
+{name:"monkey mart", url:"monkeymart/index.html"},
+{name:"tetris", url:"tetris/index.html"},
+{name:"pacman", url:"pacman/index.html"},
+{name:"flappy bird", url:"flappybird/index.html"},
+{name:"motox3m-spooky", url:"motox3m-spooky/index.html"},
+{name:"motox3m-winter", url:"motox3m-winter/index.html"},
+{name:"stack", url:"stack/index.html"},
+{name:"boxing random", url:"boxingrandom/index.html"},
+{name:"driftboss", url:"drift-boss/index.html"},
+{name:"vex 6", url:"vex6/index.html"},
+{name:"vex", url:"vex/index.html"},
+{name:"vex 2", url:"vex2/index.html"},
+{name:"vex 3", url:"vex3/index.html"},
+{name:"vex 4", url:"vex4/index.html"},
+{name:"vex 5", url:"vex5/index.html"},
+{name:"redball 4", url:"redball4/index.html"},
+{name:"redball 3", url:"redball3/index.html"},
+{name:"motox3m-pool",url:"motox3m-pool/index.html"},
+{name:"snake", url:"snake/index.html"},
+{name:"paperio", url:"paperio/index.html"},
+{name:"helixjump", url:"helixjump/index.html"},
+{name:"rooftopsnipers", url:"rooftopsnipers/index.html"},
+{name:"rooftopsnipers 2", url:"rooftopsnipers2/index.html"},
+{name:"gunmayhem 2", url:"gunmayhem2/index.html"},
+{name:"gunmayhem", url:"gunmayhem/index.html"},
+{name:"sprinter", url:"sprinter/index.html"},
+{name:"ngon", url:"ngon/index.html"},
+{name:"amazing rope police", url:"amazing-rope-police/index.html"},
+{name:"tiny fishing", url:"tinyfishing/index.html"},
+{name:"funnyshooter 2", url:"funnyshooter2/index.html"},
+{name:"timeshooter 2", url:"timeshooter2/index.html"},
+{name:"timeshooter 3", url:"timeshooter3/index.html"},
+{name:"timeshooter 1", url:"timeshooter1/index.html"},
+{name:"super meat boy", url:"supermeatboy/index.html"},
+{name:"wordle", url:"wordle/index.html"},
+{name:"super hot", url:"superhot/index.html"},
+{name:"little alchemy", url:"littlealchemy/index.html"},
+{name:"factory ball", url:"factoryballs/index.html"},
+{name:"color switch", url:"colorswitch/index.html"},
+{name:"boxing physics 2", url:"boxingphysics2/index.html"},
+{name:"pokemon leaf green", url:"roms/index.html?game=pokemon-leaf-green&type=gba"},
+{name:"pokemon ruby", url:"roms/index.html?game=pokemon-ruby&type=gba"},
+{name:"pokemon sapphire", url:"roms/index.html?game=pokemon-sapphire&type=gba"},
+{name:"pokemon yellow", url:"roms/index.html?game=pokemon-yellow&type=gbc"},
+{name:"pokemon gold", url:"roms/index.html?game=pokemon-gold&type=gbc"},
+{name:"pokemon silver", url:"roms/index.html?game=pokemon-silver&type=gbc"},
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+{name:"MortgageCalculator Games", url:"games/"},
+
+
+
+
+];
+
+
+
+
+function showLoader(){
+  document.getElementById("loader-overlay").classList.add("active");
+  document.getElementById("game-frame").style.opacity = "0";
+}
+
+
+
+
+function hideLoader(){
+  document.getElementById("loader-overlay").classList.remove("active");
+  document.getElementById("game-frame").style.opacity = "1";
+}
+
+
+
+
+function switchProxy(){
+  const encoded = document.getElementById("proxy-selector").value;
+  currentBase = atob(encoded).trim();
+  document.getElementById("current-url").innerText = currentBase;
+
+
+
+
+  if(selectedGameUrl){
+    showLoader();
+    loadFrame();
   }
-});
+}
 
-/* ---------------------------
-   DRAGGING LOGIC
-----------------------------*/
-const panel = document.getElementById("panel");
 
-let isDragging = false;
-let offsetX = 0;
-let offsetY = 0;
 
-panel.addEventListener("mousedown", (e) => {
-  isDragging = true;
-  offsetX = e.clientX - panel.offsetLeft;
-  offsetY = e.clientY - panel.offsetTop;
-});
 
-document.addEventListener("mousemove", (e) => {
-  if (!isDragging) return;
-  panel.style.left = (e.clientX - offsetX) + "px";
-  panel.style.top = (e.clientY - offsetY) + "px";
-});
+function renderGames(){
+  const term = document.getElementById("search").value.toLowerCase();
+  const container = document.getElementById("game-list");
 
-document.addEventListener("mouseup", () => {
-  isDragging = false;
-});
+
+
+
+  container.innerHTML = "";
+
+
+
+
+  const filtered = games.filter(g => g.name.toLowerCase().includes(term));
+  document.getElementById("count").innerText = filtered.length;
+
+
+
+
+  filtered.forEach(game => {
+    const div = document.createElement("div");
+    div.className = "game-btn";
+    div.innerText = game.name;
+
+
+
+
+    div.onclick = () => {
+      document.querySelectorAll(".game-btn").forEach(b => b.classList.remove("active-game"));
+      div.classList.add("active-game");
+
+
+
+
+      document.getElementById("active-title").innerText = game.name;
+      selectedGameUrl = game.url;
+
+
+
+
+      showLoader();
+      loadFrame();
+    };
+
+
+
+
+    container.appendChild(div);
+  });
+}
+
+
+
+
+function loadFrame() {
+  const frame = document.getElementById("game-frame");
+
+
+  if (selectedGameUrl === "__notebook__") {
+    frame.removeAttribute("srcdoc");
+    frame.src = "https://notebooks.kozow.com/";
+  }
+
+
+  else if (selectedGameUrl === "__fnae__") {
+    const launcherHTML = document.getElementById("fnae-launcher").innerHTML;
+    frame.src = "about:blank";
+    frame.srcdoc = launcherHTML;
+  }
+  
+  
+  else if (selectedGameUrl === "__ace__") {
+    frame.removeAttribute("srcdoc");
+    frame.src = "http://localhost:8080/";
+  }
+  
+
+  else if (selectedGameUrl === "__arctic__") {
+    frame.removeAttribute("srcdoc");
+    frame.src = "https://science.wikidelia.net/arcticmathsearch.html";
+  }
+
+
+  else {
+    frame.removeAttribute("srcdoc");
+    frame.src = currentBase + selectedGameUrl;
+  }
+
+
+  document.getElementById("home-screen").classList.add("hidden");
+}
+
+
+
+
+function openLibrary() {
+  document.getElementById("home-screen").classList.add("hidden");
+  renderGames();
+}
+
+
+
+
+function randomGame() {
+  const game = games[Math.floor(Math.random() * games.length)];
+  selectedGameUrl = game.url;
+  document.getElementById("active-title").innerText = game.name;
+  showLoader();
+  loadFrame();
+}
+
+
+
+
+function goHome() {
+  document.getElementById("home-screen").classList.remove("hidden");
+  document.getElementById("active-title").innerText = "None";
+  const frame = document.getElementById("game-frame");
+  frame.src = "about:blank";
+  frame.removeAttribute("srcdoc");
+}
+
+
+
+
+function selectNotebook() {
+  selectedGameUrl = "__notebook__";
+  document.getElementById("active-title").innerText = "Notebook Portal";
+  showLoader();
+  loadFrame();
+}
+
+
+
+
+function selectFNAE() {
+  selectedGameUrl = "__fnae__";
+  document.getElementById("active-title").innerText = "Five Night's at BIG E";
+  showLoader();
+  loadFrame();
+}
+
+
+
+
+window.onload = () => {
+  document.getElementById("sidebar").style.opacity = "1";
+  document.getElementById("sidebar").style.transform = "translateX(0)";
+  document.getElementById("viewer").style.opacity = "1";
+  document.getElementById("viewer").style.transform = "translateX(0)";
+
+
+  document.getElementById("game-frame").addEventListener("load", hideLoader);
+
+
+  switchProxy();
+  renderGames();
+};
 </script>
+
 
 </body>
 </html>
+
+
+
+
+
+
+
+
